@@ -38,11 +38,11 @@ st.markdown("""
     .stButton>button:hover { background-color: #3060d0; border-color: #58a6ff; }
     
     /* Sıfırlama Butonu Özel Stili */
-    .reset-btn button {
+    .reset-btn-container { margin-top: 30px; }
+    .reset-btn-container button {
         background-color: #21262d !important;
         border: 1px solid #30363d !important;
         text-align: center !important;
-        margin-top: 20px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -63,7 +63,7 @@ RAW_DATA = [
     {"q": "Donatanın sınırlı sorumluluğu hangi durumlarda söz konusudur?", "a": "Kaptanın kusurunda", "options": ["Kaptanın kusurunda", "Donatanın kendi kusurunda", "Geminin denize elverişsizliğinde", "Yakıt borçlarında"]},
     {"q": "Kırkambar sözleşmesi nedir?", "a": "Belirli bir malın taşınması için geminin bir kısmının tahsis edildiği sözleşmedir", "options": ["Geminin tamamının tahsis edildiği sözleşmedir", "Belirli bir malın taşınması için geminin bir kısmının tahsis edildiği sözleşmedir", "Geminin zaman esaslı kiralanmasıdır", "Sadece dökme yük taşıma sözleşmesidir"]},
     {"q": "Dispeççi kimdir?", "a": "Müşterek avarya hesaplarını yapan uzmandır", "options": ["Gemi acentesidir", "Navlun hesaplayan kişidir", "Müşterek avarya hesaplarını yapan uzmandır", "Liman başkanı"]},
-    {"q": "Donatanın yük üzerindeki hapis hakkı ne zaman sona erer?", "a": "Yük alıcıya teslim edildiğinde", "options": ["Yük gemiye yüklendiğinde", "Yük alıcıya teslim edildiğinde", "Konişmento düzenlendiğinde", "Gemi kalktığında"]},
+    {"q": "Donatanın yük üzerinde hapis hakkı ne zaman sona erer?", "a": "Yük alıcıya teslim edildiğinde", "options": ["Yük gemiye yüklendiğinde", "Yük alıcıya teslim edildiğinde", "Konişmento düzenlendiğinde", "Gemi kalktığında"]},
     {"q": "Zaman çarteri sözleşmesinde yakıt giderleri kime aittir?", "a": "Tahsis olunana (Kiracıya)", "options": ["Donatana", "Kaptana", "Tahsis edene", "Tahsis olunana (Kiracıya)"]},
     {"q": "Teyitli konişmento neyi ifade eder?", "a": "Malların gemiye yüklendiğini", "options": ["Malların gemiye yüklendiğini", "Malların sadece teslim alındığını", "Navlunun ödendiğini", "Geminin yola çıktığını"]},
     {"q": "Aşağıdakilerden hangisi gemi adamı değildir?", "a": "Kılavuz kaptan", "options": ["Kaptan", "Çarkçıbaşı", "Stajyer", "Kılavuz kaptan"]},
@@ -100,9 +100,9 @@ if not st.session_state.done:
                 st.session_state.done = True
                 st.rerun()
 
-    # İLK SAYFA SIFIRLA BUTONU
-    st.markdown('<div class="reset-btn">', unsafe_allow_html=True)
-    if st.button("🏠 Sınavı Sıfırla", key="reset_main"):
+    # --- ANA SAYFA SIFIRLAMA BUTONU ---
+    st.markdown('<div class="reset-btn-container">', unsafe_allow_html=True)
+    if st.button("🏠 Sınavı Sıfırla", key="main_reset"):
         st.session_state.clear()
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -123,7 +123,7 @@ else:
     
     if score >= 80: st.balloons()
     
-    st.subheader("Yanlış Cevaplar")
+    st.subheader("Hatalı Cevaplar")
     has_errors = False
     for r in st.session_state.results:
         if r["u"] != r["c"]:
