@@ -37,7 +37,6 @@ st.markdown("""
     }
     .stButton>button:hover { background-color: #3060d0; border-color: #58a6ff; }
     
-    /* Sıfırlama Butonu Özel Stili */
     .reset-btn-container { margin-top: 30px; }
     .reset-btn-container button {
         background-color: #21262d !important;
@@ -47,7 +46,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- VERİ SETİ (BELGEDEKİ TÜM SORULAR) ---
+# --- VERİ SETİ ---
 RAW_DATA = [
     {"q": "Yolcu, bilette belirtilen geminin kalkmasından önce veya yolculuk sırasında ölürse yahut yolculuğa devam etmesine engel olan bir hastalık veya diğer bir zorunlayıcı sebep ortaya çıkarsa bilet ücretinin yarısı ödenir. Bu hükme göre hangisi yanlıştır?", "a": "Bu hüküm sadece yolcu gemileri için geçerlidir", "options": ["Bilet ücretinin tamamı ödenmişse yarısı iade edilir", "Bilet ücreti hiç ödenmemişse yarısı talep edilir", "Bu hüküm sadece yolcu gemileri için geçerlidir", "Zorunlayıcı sebep objektif bir imkansızlık olmalıdır"]},
     {"q": "Gemi kira sözleşmesinde aksi kararlaştırılmamışsa, geminin sigorta ettirilmesi yükümlülüğü kime aittir?", "a": "Gemi malikine", "options": ["Kiracıya", "Gemi malikine", "Gemi işletme müteahhidine", "Kaptana"]},
@@ -71,9 +70,51 @@ RAW_DATA = [
     {"q": "Geminin 'denize elverişli' olması ne demektir?", "a": "Geminin teknik, personel ve donanım olarak yolculuğu tamamlayabilecek durumda olması", "options": ["Geminin sadece yüzebilmesi", "Geminin teknik, personel ve donanım olarak yolculuğu tamamlayabilecek durumda olması", "Geminin temiz olması", "Geminin sigortalı olması"]}
 ]
 
+# --- AKILLI ŞIK DENGELEME VE KARIŞTIRMA ALGORİTMASI ---
+def build_balanced_quiz(data):
+    shuffled_questions = random.sample(data, len(data))
+    final_quiz = []
+    last_slots = [] # Son kullanılan doğru şık pozisyonlarını tutar
+
+    for item in shuffled_questions:
+        correct_text = item["a"]
+        wrong_options = [o for o in item["options"] if o != correct_text]
+        random.shuffle(wrong_options)
+        
+        # Müsait slotları belirle (0=A, 1=B, 2=C, 3=D)
+        available_slots = [0, 1, 2, 3]
+        
+        # ARKA ARKAYA 3 AYNI ŞIK ENGELİ:
+        # Eğer son iki soru aynı şıksa (örn: ikisi de A), bu soru için o şıkkı listeden çıkar.
+        if len(last_slots) >= 2:
+            if last_slots[-1] == last_slots[-2]:
+                forbidden_slot = last_slots[-1]
+                if forbidden_slot in available_slots:
+                    available_slots.remove(forbidden_slot)
+        
+        # Doğru cevabın yerini seç
+        chosen_slot = random.choice(available_slots)
+        last_slots.append(chosen_slot)
+        
+        # Şıkları yerleştir
+        final_options = [None] * 4
+        final_options[chosen_slot] = correct_text
+        
+        w_ptr = 0
+        for i in range(4):
+            if final_options[i] is None:
+                final_options[i] = wrong_options[w_ptr]
+                w_ptr += 1
+        
+        item_copy = item.copy()
+        item_copy["options"] = final_options
+        final_quiz.append(item_copy)
+        
+    return final_quiz
+
 # --- SİSTEM BAŞLATMA ---
 if 'quiz' not in st.session_state:
-    st.session_state.quiz = random.sample(RAW_DATA, len(RAW_DATA))
+    st.session_state.quiz = build_balanced_quiz(RAW_DATA)
     st.session_state.idx = 0
     st.session_state.results = []
     st.session_state.done = False
@@ -100,7 +141,6 @@ if not st.session_state.done:
                 st.session_state.done = True
                 st.rerun()
 
-    # --- ANA SAYFA SIFIRLAMA BUTONU ---
     st.markdown('<div class="reset-btn-container">', unsafe_allow_html=True)
     if st.button("🏠 Sınavı Sıfırla", key="main_reset"):
         st.session_state.clear()
