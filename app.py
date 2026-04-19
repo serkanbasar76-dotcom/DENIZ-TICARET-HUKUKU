@@ -16,7 +16,7 @@ st.markdown("""
     .serkan-hoca { font-size: 16px !important; font-weight: 600; color: #58a6ff; text-align: center; margin-top: -5px; margin-bottom: 10px; }
     
     .result-container { text-align: center; padding: 20px 0; margin-top: 10px; }
-    .big-result { font-size: 85px !important; font-weight: 900; color: #58a6ff; text-transform: uppercase; line-height: 1.1; }
+    .big-result { font-size: 80px !important; font-weight: 900; color: #58a6ff; text-transform: uppercase; line-height: 1.1; }
     
     .stats-container {
         text-align: center; font-size: 22px; color: #ffffff; margin: 20px auto;
@@ -36,6 +36,14 @@ st.markdown("""
         font-size: 14px; text-align: left; margin-bottom: -12px;
     }
     .stButton>button:hover { background-color: #3060d0; border-color: #58a6ff; }
+    
+    /* Sıfırlama Butonu Özel Stili */
+    .reset-btn button {
+        background-color: #21262d !important;
+        border: 1px solid #30363d !important;
+        text-align: center !important;
+        margin-top: 20px !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -65,8 +73,7 @@ RAW_DATA = [
 
 # --- SİSTEM BAŞLATMA ---
 if 'quiz' not in st.session_state:
-    shuffled = random.sample(RAW_DATA, len(RAW_DATA))
-    st.session_state.quiz = shuffled
+    st.session_state.quiz = random.sample(RAW_DATA, len(RAW_DATA))
     st.session_state.idx = 0
     st.session_state.results = []
     st.session_state.done = False
@@ -92,6 +99,14 @@ if not st.session_state.done:
                 st.session_state.end_time = time.time()
                 st.session_state.done = True
                 st.rerun()
+
+    # İLK SAYFA SIFIRLA BUTONU
+    st.markdown('<div class="reset-btn">', unsafe_allow_html=True)
+    if st.button("🏠 Sınavı Sıfırla", key="reset_main"):
+        st.session_state.clear()
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
 else:
     # --- ANALİZ SAYFASI ---
     elapsed = st.session_state.end_time - st.session_state.start_time
@@ -107,13 +122,19 @@ else:
     st.markdown(f'<div class="stats-container">⏱ {m} dk {s} sn &nbsp; | &nbsp; <span class="stat-correct">DOĞRU: {corrects}</span> &nbsp; | &nbsp; <span class="stat-wrong">YANLIŞ: {wrongs}</span></div>', unsafe_allow_html=True)
     
     if score >= 80: st.balloons()
-    st.subheader("Hatalı Sorular")
+    
+    st.subheader("Yanlış Cevaplar")
+    has_errors = False
     for r in st.session_state.results:
         if r["u"] != r["c"]:
+            has_errors = True
             with st.expander(f"Soru {r['n']} - Hata"):
                 st.write(f"**Soru:** {r['q']}")
                 st.error(f"Senin Cevabın: {r['u']}")
                 st.success(f"Doğru Cevap: {r['c']}")
+    
+    if not has_errors:
+        st.success("Tebrikler! Hiç hata yapmadınız.")
                 
     if st.button("Sınava Yeniden Başla", use_container_width=True):
         st.session_state.clear()
